@@ -2,16 +2,27 @@ from datetime import datetime
 from FlaskWebProject import app, db, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from azure.storage.blob import BlockBlobService
 import string, random
 from werkzeug.utils import secure_filename
 from flask import flash
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
-blob_container = app.config['BLOB_CONTAINER']
-blob_service = BlockBlobService(account_name=app.config['BLOB_ACCOUNT'], account_key=app.config['BLOB_STORAGE_KEY'])
+# Azure Blob Storage setup
+blob_container_name = app.config['BLOB_CONTAINER']
+conn_str = app.config['BLOB_CONNECTION_STRING']  # Replace BLOB_ACCOUNT + BLOB_STORAGE_KEY
+blob_service_client = BlobServiceClient.from_connection_string(conn_str)
 
+# Ensure container exists
+container_client = blob_service_client.get_container_client(blob_container_name)
+try:
+    container_client.create_container()
+except Exception:
+    pass  # container already exists
+
+# Helper function to generate random filenames
 def id_generator(size=32, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -28,9 +39,11 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
 
 class Post(db.Model):
     __tablename__ = 'posts'
@@ -52,17 +65,29 @@ class Post(db.Model):
         self.user_id = userId
 
         if file:
-            filename = secure_filename(file.filename);
-            fileextension = filename.rsplit('.',1)[1];
-            Randomfilename = id_generator();
-            filename = Randomfilename + '.' + fileextension;
+            filename = secure_filename(file.filename)
+            file_extension = filename.rsplit('.', 1)[1]
+            random_filename = id_generator()
+            filename = f"{random_filename}.{file_extension}"
+
             try:
-                blob_service.create_blob_from_stream(blob_container, filename, file)
-                if(self.image_path):
-                    blob_service.delete_blob(blob_container, self.image_path)
-            except Exception:
-                flash(Exception)
-            self.image_path =  filename
+                # Upload file to Azure Blob Storage
+                blob_client = container_client.get_blob_client(filename)
+                blob_client.upload_blob(file, overwrite=True)
+
+                # Delete old blob if exists
+                if self.image_path:
+                    old_blob = container_client.get_blob_client(self.image_path)
+                    try:
+                        old_blob.delete_blob()
+                    except Exception:
+                        pass
+
+            except Exception as e:
+                flash(f"Blob upload error: {e}")
+
+            self.image_path = filename
+
         if new:
             db.session.add(self)
         db.session.commit()
