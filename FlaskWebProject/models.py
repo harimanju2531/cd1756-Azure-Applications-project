@@ -9,7 +9,8 @@ from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
 # Azure Blob Storage setup
 blob_container_name = app.config['BLOB_CONTAINER']
-conn_str = app.config['BLOB_CONNECTION_STRING']  # Replace BLOB_ACCOUNT + BLOB_STORAGE_KEY
+# Construct connection string from individual settings
+conn_str = f"DefaultEndpointsProtocol=https;AccountName={app.config['BLOB_ACCOUNT']};AccountKey={app.config['BLOB_STORAGE_KEY']};EndpointSuffix=core.windows.net"  # Replace BLOB_ACCOUNT + BLOB_STORAGE_KEY
 blob_service_client = BlobServiceClient.from_connection_string(conn_str)
 
 # Ensure container exists
