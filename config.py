@@ -41,8 +41,8 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # MS Authentication Settings
-    CLIENT_ID = os.environ.get('CLIENT_ID') or 'your-client-id-from-phase-4'
-    CLIENT_SECRET = os.environ.get('CLIENT_SECRET') or 'your-client-secret-from-phase-4'
+    CLIENT_ID = os.environ.get('CLIENT_ID') or 'fd09d6b4-4fea-4cb0-bc13-6e567b6c2d6f'
+    CLIENT_SECRET = os.environ.get('CLIENT_SECRET') or 'y1g8Q~O6lZSROcULMZukRKZKx2b6180aJorlxbEi'
     
     # For multi-tenant app (allows personal Microsoft accounts)
     AUTHORITY = "https://login.microsoftonline.com/common"
