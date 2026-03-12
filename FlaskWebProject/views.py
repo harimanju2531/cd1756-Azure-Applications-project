@@ -61,6 +61,11 @@ def post(id):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    app.logger.info(f"🔍 X-Forwarded-Proto: {request.headers.get('X-Forwarded-Proto', 'NOT PRESENT')}")
+    app.logger.info(f"🔍 Request URL: {request.url}")
+    app.logger.info(f"🔍 PREFERRED_URL_SCHEME: {app.config.get('PREFERRED_URL_SCHEME', 'NOT SET')}")
+    redirect_uri = url_for("authorized", _external=True)
+    app.logger.info(f"🔍 Generated Redirect URI: {redirect_uri}")
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = LoginForm()
