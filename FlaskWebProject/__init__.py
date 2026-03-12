@@ -13,6 +13,8 @@ from flask_session import Session
 app = Flask(__name__)
 app.config.from_object(Config)
 # TODO: Add any logging levels and handlers with app.logger
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 if not os.path.exists('logs'):
     os.mkdir('logs')
 
