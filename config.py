@@ -8,6 +8,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-random-secret-key-here-change-this'
+    PREFERRED_URL_SCHEME = 'https'
 
     # Blob Storage Settings
     BLOB_ACCOUNT = os.environ.get('BLOB_ACCOUNT') or 'images12345'
